@@ -6,6 +6,6 @@ const symbolSchema = new Schema({
   price: { type: String, required: true },
 });
 
-const userModel = mongoose.model("user", userSchema);
+const symbolModel = mongoose.model("user", symbolSchema);
 
-module.exports = userModel;
+module.exports = symbolModel;
