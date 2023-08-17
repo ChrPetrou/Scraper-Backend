@@ -30,6 +30,16 @@ const generic = async () => {
 
   const page = await browser.newPage();
   await page.goto("https://www.tradingview.com/symbols/EURUSD/?exchange=FX");
+
+  console.log("wait");
+  await page.waitForSelector(".js-symbol-last");
+  console.log("ddadas");
+  await page.$$eval("span.js-symbol-last", (el) => {
+    console.log("found");
+    console.log(el[0]);
+  });
+
+  console.log("ended");
   //   await page.screenshot({ path: "amazing.png" });
   //   await browser.close();
 };
