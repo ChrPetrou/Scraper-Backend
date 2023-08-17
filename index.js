@@ -17,6 +17,8 @@ const main = async () => {
   console.log("Connected!");
 
   app.listen(PORT, () => {
+    generic();
+
     console.log(`Server started on port http://localhost:${PORT}`);
   });
 };
@@ -28,9 +30,8 @@ const generic = async () => {
 
   const page = await browser.newPage();
   await page.goto("https://www.tradingview.com/symbols/EURUSD/?exchange=FX");
-  await page.screenshot({ path: "amazing.png" });
-  await browser.close();
+  //   await page.screenshot({ path: "amazing.png" });
+  //   await browser.close();
 };
 
-// main();
-generic();
+main();
