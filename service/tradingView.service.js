@@ -35,6 +35,7 @@ async function getRates(browser, url, symbol) {
   let prog = await page.$$eval(".block-sjmalUvv button", (el) => {
     return Array.from(el).map((x) => x.innerText);
   });
+
   prog = prog.map((x) => {
     return [
       _.camelCase(x.split("\n")[0].split(" ").reverse().join("")),
