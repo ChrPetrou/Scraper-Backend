@@ -1,5 +1,6 @@
 var puppeteer = require("puppeteer");
 var _ = require("lodash");
+const { Error } = require("mongoose");
 
 /**
  *
@@ -8,7 +9,7 @@ var _ = require("lodash");
  * @param {*} symbol
  * @returns
  */
-async function getRates(browser, url, symbol) {
+async function getRates(browser, url, symbol, retry = 0) {
   const page = await browser.newPage();
   await page.setViewport({ width: 1080, height: 1024 });
   await page.goto(url);
@@ -44,6 +45,13 @@ async function getRates(browser, url, symbol) {
   });
   prog = Object.fromEntries(prog);
 
+  if (rate.length === 0) {
+    if (retry < 2) {
+      return getRates(browser, url, symbol, retry + 1);
+    } else {
+      throw new Error("Rate limit Error");
+    }
+  }
   return { title, rate: parseFloat(rate), ...prog, symbol };
 }
 
@@ -61,14 +69,14 @@ const tradingViewService = {
           browser,
           `https://www.tradingview.com/symbols/${esymbol}/?exchange=FX`,
           esymbol
-        );
+        ).catch((err) => ({})); // return empty object if error occurs
         return { rate, symbol, title };
       })
     );
 
     //   console.log(results);
     await browser.close();
-    return results;
+    return results.filter((a) => !!a.rate);
   },
   getPerformanceForSymbols: async (symbols) => {
     const browser = await puppeteer.launch({
@@ -89,12 +97,12 @@ const tradingViewService = {
           browser,
           `https://www.tradingview.com/symbols/${symbol}/?exchange=FX`,
           symbol
-        );
+        ).catch((err) => null);
       })
     );
 
     await browser.close();
-    return results;
+    return results.filter((a) => !!a);
   },
 };
 

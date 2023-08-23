@@ -2,29 +2,23 @@ const express = require("express");
 require("dotenv").config();
 const router = express.Router();
 const symbolModel = require("../models/symbolModel");
+const rateModel = require("../models/exchangeModel");
 
-router.post("/create", async (req, res) => {
-  let newSymbol;
-  newSymbol = await symbolModel
-    .create({
-      name: "d",
-      symbol: "d",
-      price: 1,
-      today: 1,
-      week: 1,
-      month1: 1,
-      months6: 1,
-      YeartoDate: 1,
-      year1: 1,
-      years5: 1,
-      timeAll: 1,
-    })
-    .catch((err) => {}); // to catch error
-
-  //   const symbol = newSymbol.toJSON();
-  return res.status(200).json({
-    message: "succ",
+router.post("/latest-rate", async (req, res) => {
+  const { symbol } = req.body;
+  let latestsymbol = await symbolModel.find({ symbol: symbol }).catch((err) => {
+    console.log(err);
   });
+  const rate = await rateModel
+    .find({ symbol: latestsymbol[0]._id })
+    .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
+    .limit(1)
+    .catch((err) => {
+      console.log(err);
+    }); // Limit to only one document
+
+  // const exchangeRate = rate.toJSON();
+  return res.status(200).json(rate[0]);
 });
 
 module.exports = router;

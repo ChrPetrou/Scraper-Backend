@@ -25,7 +25,9 @@ const main = async () => {
         "USDJPY",
       ]);
 
-      console.log(result[0].rate, result[1].rate, result[2].rate);
+      for (const r of result) {
+        console.log(r.title, r.rate);
+      }
 
       // result.map(
       //   async (element, index) =>
