@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const symbolSchema = new Schema(
   {
-    name: { type: String, required: true }, // username of the user
+    name: { type: String, required: true, unique: true }, // username of the user
     symbol: { type: String, required: true },
   },
   {

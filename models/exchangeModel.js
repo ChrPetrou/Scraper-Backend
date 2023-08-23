@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const { symbolModel } = require("./symbolModel");
+const symbolModel = require("./symbolModel");
 
 const rateSchema = new Schema(
   {

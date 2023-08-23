@@ -57,12 +57,12 @@ const tradingViewService = {
 
     const results = await Promise.all(
       symbols.map(async (esymbol, index) => {
-        const { rate, symbol } = await getRates(
+        const { rate, symbol, title } = await getRates(
           browser,
           `https://www.tradingview.com/symbols/${esymbol}/?exchange=FX`,
           esymbol
         );
-        return { rate, symbol };
+        return { rate, symbol, title };
       })
     );
 

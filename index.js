@@ -9,6 +9,8 @@ var _ = require("lodash");
 const symbols = require("./routes/symbols.js");
 const tradingViewService = require("./service/tradingView.service.js");
 const symbolModel = require("./models/symbolModel");
+const rateModel = require("./models/exchangeModel");
+const performanceModel = require("./models/performanceModel ");
 
 const PORT = 4000;
 
@@ -23,7 +25,30 @@ const main = async () => {
         "USDJPY",
       ]);
 
-      console.log(result);
+      console.log(result[0].rate, result[1].rate, result[2].rate);
+
+      // result.map(
+      //   async (element, index) =>
+      //     await symbolModel
+      //       .create({
+      //         name: element.title,
+      //         symbol: element.symbol,
+      //       })
+      //       .catch((err) => {})
+      // );
+
+      result.map(async (element, _) => {
+        const symbolId = await symbolModel.find({ symbol: element.symbol });
+        // console.log(...symbolId._id);
+        await rateModel
+          .create({
+            symbol: symbolId[0]._id,
+            rate: element.rate,
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
     },
     null,
     true,
@@ -42,6 +67,26 @@ const main = async () => {
       ]);
 
       console.log(result);
+
+      result.map(async (element, _) => {
+        const symbolId = await symbolModel.find({ symbol: element.symbol });
+        // console.log(...symbolId._id);
+        await performanceModel
+          .create({
+            symbol: symbolId[0]._id,
+            today: element.today,
+            week: element.week,
+            month1: element.month1,
+            months6: element.months6,
+            YeartoDate: element.datetoYear,
+            year1: element.year1,
+            years5: element.years5,
+            timeAll: element.timeAll,
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
     },
     null,
     true,

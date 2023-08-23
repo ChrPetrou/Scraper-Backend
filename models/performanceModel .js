@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const { symbolModel } = require("./symbolModel");
+const symbolModel = require("./symbolModel");
 
-const symbolDataSchema = new Schema(
+const performanceSchema = new Schema(
   {
     symbol: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: symbolModel,
+      ref: symbolModel.modelName,
       required: true,
     },
     today: { type: Number, required: true },
@@ -23,6 +23,6 @@ const symbolDataSchema = new Schema(
   }
 );
 
-const symbolDataModel = mongoose.model("symbolData", symbolDataSchema);
+const performanceModel = mongoose.model("performance", performanceSchema);
 
-module.exports = symbolDataModel;
+module.exports = performanceModel;
