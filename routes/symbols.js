@@ -15,6 +15,16 @@ const ProgressSchema = Joi.object({
   dateTo: Joi.number().required(),
 });
 
+router.get("/all-symbols", async (req, res) => {
+  let latestsymbol = await symbolModel.find({}).catch((err) => {
+    console.log(err);
+  });
+
+  console.log(latestsymbol);
+
+  return res.status(200).json(latestsymbol);
+});
+
 router.post("/latest-rate", async (req, res) => {
   const { symbol, error } = latestSchema.validate(req.body);
 
@@ -34,7 +44,6 @@ router.post("/latest-rate", async (req, res) => {
       console.log(err);
     }); // Limit to only one document
 
-  // const exchangeRate = rate.toJSON();
   return res.status(200).json(rate[0]);
 });
 
@@ -48,88 +57,27 @@ router.post("/progress-rate", async (req, res) => {
 
   const { symbol, dateFrom, dateTo } = value;
 
-  let gteDate, ltDate;
-
-  // switch (time) {
-  //   case "today": {
-  //     console.log("today");
-  //     gteDate = new Date(); //.toISOString().split("T")[0];
-  //     ltDate = new Date(gteDate);
-  //     ltDate.setDate(gteDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //   }
-  //   case "week": {
-  //     console.log("week");
-  //     gteDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  //     ltDate = new Date();
-  //     ltDate.setDate(ltDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //     break;
-  //   }
-  //   case "month": {
-  //     console.log("month");
-  //     gteDate = new Date(); //.toISOString().split("T")[0];
-  //     const month = gteDate.getMonth();
-  //     gteDate;
-  //     ltDate = new Date(gteDate);
-  //     ltDate.setDate(gteDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //     break;
-  //   }
-  //   case "months": {
-  //     console.log("months");
-  //     gteDate = new Date(); //.toISOString().split("T")[0];
-  //     ltDate = new Date(gteDate);
-  //     ltDate.setDate(gteDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //     break;
-  //   }
-
-  //   case "year": {
-  //     gteDate = new Date(); //.toISOString().split("T")[0];
-  //     ltDate = new Date(gteDate);
-  //     ltDate.setDate(gteDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //     break;
-  //   }
-  //   case "years": {
-  //     gteDate = new Date(); //.toISOString().split("T")[0];
-  //     ltDate = new Date(gteDate);
-  //     ltDate.setDate(gteDate.getDate() + 1);
-  //     gteDate = gteDate.toISOString().split("T")[0];
-  //     ltDate = ltDate.toISOString().split("T")[0];
-  //     break;
-  //   }
-  //   default:
-  //     break;
-  // }
-  // console.log(time, gteDate, ltDate);
-
   let latestsymbol = await symbolModel.find({ symbol: symbol }).catch((err) => {
     console.log(err);
   });
 
-  const timestampDateFrom = new Date(dateFrom * 1000)
-    .toISOString()
-    .split("T")[0];
-  const timestampDateTo = new Date(dateTo * 1000).toISOString().split("T")[0];
+  const timestampDateFrom = new Date(dateFrom * 1000).toISOString();
+
+  const timestampDateTo = new Date(dateTo * 1000).toISOString();
 
   const rate = await rateModel
     .find({
       symbol: latestsymbol[0]?._id,
-      createdAt: { $gte: timestampDateFrom, $lte: timestampDateTo },
+      createdAt: {
+        $gt: timestampDateFrom,
+        $lte: timestampDateTo,
+      },
     })
     .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
     .catch((err) => {
       console.log(err);
     }); // Limit to only one document
 
-  // const exchangeRate = rate.toJSON();
   return res.status(200).json(rate);
 });
 
