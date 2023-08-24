@@ -16,9 +16,11 @@ const ProgressSchema = Joi.object({
 });
 
 router.get("/all-symbols", async (req, res) => {
-  let latestsymbol = await symbolModel.find({}, { _id: 0 }).catch((err) => {
-    console.log(err);
-  });
+  let latestsymbol = await symbolModel
+    .find({}, { _id: 0, __v: 0, updatedAt: 0 })
+    .catch((err) => {
+      console.log(err);
+    });
 
   console.log(latestsymbol);
 
