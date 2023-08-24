@@ -38,92 +38,91 @@ router.post("/latest-rate", async (req, res) => {
   return res.status(200).json(rate[0]);
 });
 
-router.post("/perfrormance-rate", async (req, res) => {
-  const { symbol, dateFrom, dateTo, error } = latestSchema.validate(req.body);
+router.post("/progress-rate", async (req, res) => {
+  const { value, error } = ProgressSchema.validate(req.body);
 
   if (error) {
     res.status(400).json(error);
     return;
   }
 
-  let latestsymbol = await symbolModel.find({ symbol: symbol }).catch((err) => {
-    console.log(err);
-  });
-  const dateOptions = {
-    timeZone: "UTC",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  };
+  const { symbol, dateFrom, dateTo } = value;
 
   let gteDate, ltDate;
 
-  switch (time) {
-    case "today": {
-      console.log("today");
-      gteDate = new Date(); //.toISOString().split("T")[0];
-      ltDate = new Date(gteDate);
-      ltDate.setDate(gteDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-    }
-    case "week": {
-      console.log("week");
-      gteDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      ltDate = new Date();
-      ltDate.setDate(ltDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-      break;
-    }
-    case "month": {
-      console.log("month");
-      gteDate = new Date(); //.toISOString().split("T")[0];
-      const month = gteDate.getMonth();
-      gteDate;
-      ltDate = new Date(gteDate);
-      ltDate.setDate(gteDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-      break;
-    }
-    case "months": {
-      console.log("months");
-      gteDate = new Date(); //.toISOString().split("T")[0];
-      ltDate = new Date(gteDate);
-      ltDate.setDate(gteDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-      break;
-    }
+  // switch (time) {
+  //   case "today": {
+  //     console.log("today");
+  //     gteDate = new Date(); //.toISOString().split("T")[0];
+  //     ltDate = new Date(gteDate);
+  //     ltDate.setDate(gteDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //   }
+  //   case "week": {
+  //     console.log("week");
+  //     gteDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  //     ltDate = new Date();
+  //     ltDate.setDate(ltDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //     break;
+  //   }
+  //   case "month": {
+  //     console.log("month");
+  //     gteDate = new Date(); //.toISOString().split("T")[0];
+  //     const month = gteDate.getMonth();
+  //     gteDate;
+  //     ltDate = new Date(gteDate);
+  //     ltDate.setDate(gteDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //     break;
+  //   }
+  //   case "months": {
+  //     console.log("months");
+  //     gteDate = new Date(); //.toISOString().split("T")[0];
+  //     ltDate = new Date(gteDate);
+  //     ltDate.setDate(gteDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //     break;
+  //   }
 
-    case "year": {
-      gteDate = new Date(); //.toISOString().split("T")[0];
-      ltDate = new Date(gteDate);
-      ltDate.setDate(gteDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-      break;
-    }
-    case "years": {
-      gteDate = new Date(); //.toISOString().split("T")[0];
-      ltDate = new Date(gteDate);
-      ltDate.setDate(gteDate.getDate() + 1);
-      gteDate = gteDate.toISOString().split("T")[0];
-      ltDate = ltDate.toISOString().split("T")[0];
-      break;
-    }
-    default:
-      break;
-  }
-  console.log(time, gteDate, ltDate);
+  //   case "year": {
+  //     gteDate = new Date(); //.toISOString().split("T")[0];
+  //     ltDate = new Date(gteDate);
+  //     ltDate.setDate(gteDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //     break;
+  //   }
+  //   case "years": {
+  //     gteDate = new Date(); //.toISOString().split("T")[0];
+  //     ltDate = new Date(gteDate);
+  //     ltDate.setDate(gteDate.getDate() + 1);
+  //     gteDate = gteDate.toISOString().split("T")[0];
+  //     ltDate = ltDate.toISOString().split("T")[0];
+  //     break;
+  //   }
+  //   default:
+  //     break;
+  // }
+  // console.log(time, gteDate, ltDate);
 
-  dateFrom = new Date(timestampFrom);
-  dateTo = new Date(timestampTo);
+  let latestsymbol = await symbolModel.find({ symbol: symbol }).catch((err) => {
+    console.log(err);
+  });
+
+  const timestampDateFrom = new Date(dateFrom * 1000)
+    .toISOString()
+    .split("T")[0];
+  const timestampDateTo = new Date(dateTo * 1000).toISOString().split("T")[0];
+
   const rate = await rateModel
     .find({
-      symbol: latestsymbol[0]._id,
-      createdAt: { $gte: dateFrom, $lte: dateTo },
+      symbol: latestsymbol[0]?._id,
+      createdAt: { $gte: timestampDateFrom, $lte: timestampDateTo },
     })
     .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
     .catch((err) => {
