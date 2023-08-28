@@ -28,8 +28,8 @@ router.get("/all-symbols", async (req, res) => {
 });
 
 router.post("/latest-rate", async (req, res) => {
-  const { symbol, error } = latestSchema.validate(req.body);
-
+  const { value, error } = latestSchema.validate(req.body);
+  const { symbol } = value;
   if (error) {
     res.status(400).json(error);
     return;
@@ -38,8 +38,9 @@ router.post("/latest-rate", async (req, res) => {
   let latestsymbol = await symbolModel.find({ symbol: symbol }).catch((err) => {
     console.log(err);
   });
+
   const rate = await rateModel
-    .find({ symbol: latestsymbol[0]._id })
+    .find({ symbol: latestsymbol[0]?._id })
     .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
     .limit(1)
     .catch((err) => {
