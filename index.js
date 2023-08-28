@@ -2,7 +2,6 @@ const express = require("express");
 
 require("dotenv").config();
 var cors = require("cors");
-var puppeteer = require("puppeteer");
 const mongoose = require("mongoose");
 var CronJob = require("cron").CronJob;
 var _ = require("lodash");
@@ -11,10 +10,20 @@ const tradingViewService = require("./service/tradingView.service.js");
 const symbolModel = require("./models/symbolModel");
 const rateModel = require("./models/exchangeModel");
 const performanceModel = require("./models/performanceModel ");
+const app = express();
+const server = require("http").createServer(app);
+const WebSocket = require("ws");
 
 const PORT = 4000;
 
 const main = async () => {
+  const wss = new WebSocket.Server({ server });
+
+  wss.on("connection", (socket) => {
+    console.log("Client connected");
+  });
+
+  //  Cron Job for rate
   new CronJob(
     "*/10 * * * * *",
     async () => {
@@ -27,17 +36,20 @@ const main = async () => {
 
       for (const r of result) {
         console.log(r.title, r.rate);
+        const symbol = await symbolModel.findOne({ symbol: r.symbol });
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            const dataUpdate = {
+              type: "update",
+              message: {
+                symbol: symbol.symbol,
+                rate: r.rate,
+              },
+            };
+            client.send(JSON.stringify(dataUpdate));
+          }
+        });
       }
-
-      // result.map(
-      //   async (element, index) =>
-      //     await symbolModel
-      //       .create({
-      //         name: element.title,
-      //         symbol: element.symbol,
-      //       })
-      //       .catch((err) => {})
-      // );
 
       result.map(async (element, _) => {
         const symbolId = await symbolModel.find({ symbol: element.symbol });
@@ -95,7 +107,6 @@ const main = async () => {
     "Europe/Athens"
   );
 
-  const app = express();
   app.use(express.json());
 
   app.use(cors());
@@ -104,7 +115,7 @@ const main = async () => {
   console.log("Connected to MongoDB");
   app.use("/symbols", symbols);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server started on port http://localhost:${PORT}`);
   });
 };

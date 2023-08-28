@@ -5,6 +5,8 @@ const symbolModel = require("../models/symbolModel");
 const rateModel = require("../models/exchangeModel");
 const Joi = require("joi");
 
+const WebSocket = require("ws");
+
 const latestSchema = Joi.object({
   symbol: Joi.string().required(),
 });
