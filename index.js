@@ -25,7 +25,7 @@ const main = async () => {
 
   //  Cron Job for rate
   new CronJob(
-    "*/10 * * * * *",
+    "*/5 * * * * *",
     async () => {
       console.log("GETTING RATES");
       const result = await tradingViewService.getRatesForSymbols([
