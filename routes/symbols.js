@@ -61,7 +61,7 @@ router.post("/progress-rate", async (req, res) => {
   }
 
   const { symbol, dateFrom, dateTo } = value;
-
+  const timestamp = (dateTo - dateFrom) / 100;
   let latestsymbol = await symbolModel
     .find({ symbol: symbol })
     .catch((err) => {
@@ -87,7 +87,7 @@ router.post("/progress-rate", async (req, res) => {
     .catch((err) => {
       console.log(err);
     }); // Limit to only one document
-  console.log(rate);
+  // console.log(rate);
   return res.status(200).json(rate);
 });
 

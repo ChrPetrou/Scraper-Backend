@@ -27,31 +27,22 @@ const main = async () => {
   new CronJob(
     "*/10 * * * * *",
     async () => {
-      console.log("GETTING RATES");
       const result = await tradingViewService.getRatesForSymbols([
         "EURUSD",
         "GBPUSD",
         "USDJPY",
       ]);
 
-      // for (const r of result) {
-      //   console.log(r.title, r.rate);
-      //   const symbol = await symbolModel
-      //     .findOne({ symbol: r.symbol })
-      //     .sort({ createdAt: -1 });
-      // }
-      console.log(result);
-
       result.map(async (element, _) => {
         const symbolId = await symbolModel.find({ symbol: element.symbol });
-        // console.log(...symbolId._id);
+
         const rateItem = await rateModel
           .create({
             symbol: symbolId[0]._id,
             rate: element.rate,
           })
           .catch((err) => {
-            console.log(err);
+            console.error(err);
           });
 
         //sent message to user each circle of cron job
@@ -79,18 +70,15 @@ const main = async () => {
   new CronJob(
     "0 0 6 * * *",
     async () => {
-      console.log("GETTING Performance");
       const result = await tradingViewService.getPerformanceForSymbols([
         "EURUSD",
         "GBPUSD",
         "USDJPY",
       ]);
 
-      console.log(result);
-
       result.map(async (element, _) => {
         const symbolId = await symbolModel.find({ symbol: element.symbol });
-        // console.log(...symbolId._id);
+
         await performanceModel
           .create({
             symbol: symbolId[0]._id,
@@ -104,7 +92,7 @@ const main = async () => {
             timeAll: element.timeAll,
           })
           .catch((err) => {
-            console.log(err);
+            console.error(err);
           });
       });
     },
