@@ -8,6 +8,7 @@ var _ = require("lodash");
 const symbols = require("./routes/symbols.js");
 const tradingViewService = require("./service/tradingView.service.js");
 const symbolModel = require("./models/symbolModel");
+const CronController = require("./controllers/CronController");
 const rateModel = require("./models/exchangeModel");
 const performanceModel = require("./models/performanceModel ");
 const app = express();
@@ -26,41 +27,14 @@ const main = async () => {
   //  Cron Job for rate
   new CronJob(
     "*/10 * * * * *",
-    async () => {
-      const result = await tradingViewService.getRatesForSymbols([
-        "EURUSD",
-        "GBPUSD",
-        "USDJPY",
-      ]);
+    CronController.GetSymbolRatesAndAddToDb,
+    true,
+    "America/Los_Angeles"
+  );
 
-      result.map(async (element, _) => {
-        const symbolId = await symbolModel.find({ symbol: element.symbol });
-
-        const rateItem = await rateModel
-          .create({
-            symbol: symbolId[0]._id,
-            rate: element.rate,
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-
-        //sent message to user each circle of cron job
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            const dataUpdate = {
-              type: "update",
-              message: {
-                symbol: element.symbol,
-                rate: rateItem.rate,
-                createdAt: rateItem.createdAt,
-              },
-            };
-            client.send(JSON.stringify(dataUpdate));
-          }
-        });
-      });
-    },
+  new CronJob(
+    "*/10 * * * * *",
+    () => CronController.SendRatesToConnectedClients(wss),
     null,
     true,
     "America/Los_Angeles"
