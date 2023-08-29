@@ -34,27 +34,17 @@ const main = async () => {
         "USDJPY",
       ]);
 
-      for (const r of result) {
-        console.log(r.title, r.rate);
-        const symbol = await symbolModel.findOne({ symbol: r.symbol });
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            const dataUpdate = {
-              type: "update",
-              message: {
-                symbol: symbol.symbol,
-                rate: r.rate,
-              },
-            };
-            client.send(JSON.stringify(dataUpdate));
-          }
-        });
-      }
+      // for (const r of result) {
+      //   console.log(r.title, r.rate);
+      //   const symbol = await symbolModel
+      //     .findOne({ symbol: r.symbol })
+      //     .sort({ createdAt: -1 });
+      // }
 
       result.map(async (element, _) => {
         const symbolId = await symbolModel.find({ symbol: element.symbol });
         // console.log(...symbolId._id);
-        await rateModel
+        const rateItem = await rateModel
           .create({
             symbol: symbolId[0]._id,
             rate: element.rate,
@@ -62,6 +52,21 @@ const main = async () => {
           .catch((err) => {
             console.log(err);
           });
+
+        //sent message to user each circle of cron job
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            const dataUpdate = {
+              type: "update",
+              message: {
+                symbol: element.symbol,
+                rate: rateItem.rate,
+                createdAt: rateItem.createdAt,
+              },
+            };
+            client.send(JSON.stringify(dataUpdate));
+          }
+        });
       });
     },
     null,
