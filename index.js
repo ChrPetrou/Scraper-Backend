@@ -25,7 +25,7 @@ const main = async () => {
 
   //  Cron Job for rate
   new CronJob(
-    "*/5 * * * * *",
+    "*/10 * * * * *",
     async () => {
       console.log("GETTING RATES");
       const result = await tradingViewService.getRatesForSymbols([
@@ -40,6 +40,7 @@ const main = async () => {
       //     .findOne({ symbol: r.symbol })
       //     .sort({ createdAt: -1 });
       // }
+      console.log(result);
 
       result.map(async (element, _) => {
         const symbolId = await symbolModel.find({ symbol: element.symbol });
