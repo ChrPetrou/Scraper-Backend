@@ -48,8 +48,7 @@ router.get("/history", async (req, res) => {
   }
 
   const { symbol, dateFrom, dateTo } = value;
-  const timestamp = (dateTo - dateFrom) / 100;
-  console.log(timestamp);
+
   let latestsymbol = await symbolModel
     .find({ symbol: symbol })
     .catch((err) => {
@@ -63,6 +62,13 @@ router.get("/history", async (req, res) => {
 
   const timestampDateTo = new Date(dateTo * 1000).toISOString();
 
+  const timestampDifference = (dateTo - dateFrom) / 100;
+  console.log(timestampDifference);
+  console.log(
+    timestampDateFrom,
+    timestampDateTo,
+    new Date(dateFrom * 1000 + timestampDifference * 1000).toISOString()
+  );
   const rate = await rateModel
     .find({
       symbol: latestsymbol[0]?._id,
@@ -71,12 +77,30 @@ router.get("/history", async (req, res) => {
         $lte: timestampDateTo,
       },
     })
-    .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
+    .sort({ createdAt: 1 }) // Sort by descending order of createdAt field
     .catch((err) => {
       console.log(err);
     }); // Limit to only one document
+
+  const filteredRate = [];
+  let currentTimestamp = dateFrom;
+
+  for (const item of rate) {
+    const itemTimestamp = Math.floor(new Date(item.createdAt).getTime() / 1000);
+    if (itemTimestamp >= currentTimestamp) {
+      filteredRate.push(item);
+      currentTimestamp += timestampDifference;
+    }
+    if (filteredRate.length >= 100) {
+      break;
+    }
+  }
   // console.log(rate);
-  return res.status(200).json(rate);
+  return res
+    .status(200)
+    .json(
+      filteredRate.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    );
 });
 
 module.exports = router;

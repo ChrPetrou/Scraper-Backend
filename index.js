@@ -30,6 +30,7 @@ const main = async () => {
     "America/Los_Angeles"
   );
 
+  //  Cron Job for clients
   new CronJob(
     "*/10 * * * * *",
     () => CronController.SendRatesToConnectedClients(wss),
@@ -38,7 +39,7 @@ const main = async () => {
     "America/Los_Angeles"
   );
 
-  //runs everyday at 6 am
+  //Cron Job  runs everyday at 6 am
   new CronJob(
     "0 0 6 * * *",
     CronController.GetPerformanceRateAndAddToDb,
