@@ -1,3 +1,8 @@
+const tradingViewService = require("../service/tradingView.service");
+const symbolModel = require("../models/symbolModel");
+const rateModel = require("../models/exchangeModel");
+const WebSocket = require("ws");
+
 const CronController = {
   GetSymbolRatesAndAddToDb: async () => {
     const result = await tradingViewService.getRatesForSymbols([
@@ -50,6 +55,33 @@ const CronController = {
           client.send(JSON.stringify(dataUpdate));
         }
       });
+    });
+  },
+  GetPerformanceRateAndAddToDb: async () => {
+    const result = await tradingViewService.getPerformanceForSymbols([
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+    ]);
+
+    result.map(async (element, _) => {
+      const symbolId = await symbolModel.find({ symbol: element.symbol });
+
+      await performanceModel
+        .create({
+          symbol: symbolId[0]._id,
+          today: element.today,
+          week: element.week,
+          month1: element.month1,
+          months6: element.months6,
+          YeartoDate: element.datetoYear,
+          year1: element.year1,
+          years5: element.years5,
+          timeAll: element.timeAll,
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     });
   },
 };

@@ -6,11 +6,9 @@ const mongoose = require("mongoose");
 var CronJob = require("cron").CronJob;
 var _ = require("lodash");
 const symbols = require("./routes/symbols.js");
-const tradingViewService = require("./service/tradingView.service.js");
-const symbolModel = require("./models/symbolModel");
+const rates = require("./routes/rates.js");
+const performance = require("./routes/performance.js");
 const CronController = require("./controllers/CronController");
-const rateModel = require("./models/exchangeModel");
-const performanceModel = require("./models/performanceModel ");
 const app = express();
 const server = require("http").createServer(app);
 const WebSocket = require("ws");
@@ -43,33 +41,7 @@ const main = async () => {
   //runs everyday at 6 am
   new CronJob(
     "0 0 6 * * *",
-    async () => {
-      const result = await tradingViewService.getPerformanceForSymbols([
-        "EURUSD",
-        "GBPUSD",
-        "USDJPY",
-      ]);
-
-      result.map(async (element, _) => {
-        const symbolId = await symbolModel.find({ symbol: element.symbol });
-
-        await performanceModel
-          .create({
-            symbol: symbolId[0]._id,
-            today: element.today,
-            week: element.week,
-            month1: element.month1,
-            months6: element.months6,
-            YeartoDate: element.datetoYear,
-            year1: element.year1,
-            years5: element.years5,
-            timeAll: element.timeAll,
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      });
-    },
+    CronController.GetPerformanceRateAndAddToDb,
     null,
     true,
     "Europe/Athens"
@@ -82,7 +54,8 @@ const main = async () => {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log("Connected to MongoDB");
   app.use("/symbols", symbols);
-
+  app.use("/rates", rates);
+  app.use("/performance", performance);
   server.listen(PORT, () => {
     console.log(`Server started on port http://localhost:${PORT}`);
   });
