@@ -62,11 +62,21 @@ router.get("/history", async (req, res) => {
 
   const timestampDateTo = new Date(dateTo * 1000).toISOString();
 
-  const timestampDifference = (dateTo - dateFrom) / 100;
+  const timestampDifference = (dateTo - dateFrom) / 1500;
   console.log(timestampDifference);
   console.log(
-    timestampDateFrom,
-    timestampDateTo,
+    Intl.DateTimeFormat("en-US", {
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      month: "numeric",
+    }).format(new Date(dateFrom * 1000)),
+    Intl.DateTimeFormat("en-US", {
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      month: "numeric",
+    }).format(new Date(timestampDateTo)),
     new Date(dateFrom * 1000 + timestampDifference * 1000).toISOString()
   );
   const rate = await rateModel
@@ -77,22 +87,29 @@ router.get("/history", async (req, res) => {
         $lte: timestampDateTo,
       },
     })
-    .sort({ createdAt: 1 }) // Sort by descending order of createdAt field
+    .sort({ createdAt: 1 }) // Sort by ascending order of createdAt field
     .catch((err) => {
       console.log(err);
     }); // Limit to only one document
 
   const filteredRate = [];
-  let currentTimestamp = dateFrom;
+  let currentTimestamp = Math.floor(
+    new Date(rate[0].createdAt).getTime() / 1000
+  );
 
   for (const item of rate) {
     const itemTimestamp = Math.floor(new Date(item.createdAt).getTime() / 1000);
     if (itemTimestamp >= currentTimestamp) {
       filteredRate.push(item);
+
+      const created_at = new Date(item.createdAt).toLocaleString("en-US", {
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        month: "long",
+      });
+      console.log(created_at, currentTimestamp, itemTimestamp);
       currentTimestamp += timestampDifference;
-    }
-    if (filteredRate.length >= 100) {
-      break;
     }
   }
   // console.log(rate);
