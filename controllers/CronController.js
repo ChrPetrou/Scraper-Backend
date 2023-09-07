@@ -1,6 +1,7 @@
 const tradingViewService = require("../service/tradingView.service");
 const symbolModel = require("../models/symbolModel");
 const rateModel = require("../models/exchangeModel");
+const performanceModel = require("../models/performanceModel");
 const WebSocket = require("ws");
 
 const CronController = {
@@ -74,7 +75,7 @@ const CronController = {
           week: element.week,
           month1: element.month1,
           months6: element.months6,
-          YeartoDate: element.datetoYear,
+          dateToYear: element.datetoYear,
           year1: element.year1,
           years5: element.years5,
           timeAll: element.timeAll,

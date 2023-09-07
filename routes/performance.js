@@ -1,7 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const router = express.Router();
-const performanceModel = require("../models/performanceModel ");
+const performanceModel = require("../models/performanceModel");
 const symbolModel = require("../models/symbolModel");
 const Joi = require("joi");
 
@@ -21,15 +21,16 @@ router.get("/", async (req, res) => {
     console.log(err);
   });
 
-  const rate = await performanceModel
+  const performanceRate = await performanceModel
     .find({ symbol: latestsymbol[0]?._id })
+    .select("today week month1 months6 dateToYear year1 years5 timeAll -_id")
     .sort({ createdAt: -1 }) // Sort by descending order of createdAt field
     .limit(1)
     .catch((err) => {
       console.log(err);
     }); // Limit to only one document
 
-  return res.status(200).json(rate[0]);
+  return res.status(200).json(performanceRate[0]);
 });
 
 module.exports = router;

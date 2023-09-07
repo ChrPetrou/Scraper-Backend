@@ -13,7 +13,7 @@ const performanceSchema = new Schema(
     week: { type: Number, required: true },
     month1: { type: Number, required: true },
     months6: { type: Number, required: true },
-    YeartoDate: { type: Number, required: true },
+    dateToYear: { type: Number, required: true },
     year1: { type: Number, required: true },
     years5: { type: Number, required: true },
     timeAll: { type: Number, required: true },
