@@ -62,23 +62,53 @@ router.get("/history", async (req, res) => {
 
   const timestampDateTo = new Date(dateTo * 1000).toISOString();
 
-  const timestampDifference = (dateTo - dateFrom) / 1500;
-  console.log(timestampDifference);
-  console.log(
-    Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      month: "numeric",
-    }).format(new Date(dateFrom * 1000)),
-    Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      month: "numeric",
-    }).format(new Date(timestampDateTo)),
-    new Date(dateFrom * 1000 + timestampDifference * 1000).toISOString()
-  );
+  const timestampDifference = dateTo - dateFrom;
+
+  switch (timestampDifference) {
+    case timestampDifference < 604800:
+      console.log("hi");
+      break;
+    default:
+      break;
+  }
+  let timediff = 60;
+  if (timestampDifference < 604800) {
+    //today
+    timediff = 60;
+    console.log("today");
+  } else if (timestampDifference < 2678400) {
+    //week
+    timediff = 60 * 15;
+    console.log("week");
+  } else if (timestampDifference < 15894000) {
+    //month
+    timediff = 60 * 30;
+    console.log("month");
+  } else if (timestampDifference < 21573392) {
+    //6 monhts
+    timediff = 60 * 60 * 2;
+    console.log("montsh");
+  } else if (timestampDifference < 31536001) {
+    // start of year
+    timediff = 60 * 60 * 24;
+    console.log("start");
+  } else if (timestampDifference < 157766401) {
+    //1 year before
+    timediff = 60 * 60 * 24;
+    console.log("year");
+  } else if (timestampDifference < 1694097410) {
+    // 5 years
+    timediff = 60 * 60 * 24 * 7;
+    console.log("years");
+  } else {
+    //all time
+    timediff = 60 * 60 * 24 * 31;
+    console.log("all");
+  }
+
+  console.log("timestamp", timestampDifference);
+  console.log("diff", timediff);
+
   const rate = await rateModel
     .find({
       symbol: latestsymbol[0]?._id,
@@ -94,7 +124,7 @@ router.get("/history", async (req, res) => {
 
   const filteredRate = [];
   let currentTimestamp = Math.floor(
-    new Date(rate[0].createdAt).getTime() / 1000
+    new Date(rate[0]?.createdAt).getTime() / 1000
   );
 
   for (const item of rate) {
@@ -108,11 +138,9 @@ router.get("/history", async (req, res) => {
         minute: "numeric",
         month: "long",
       });
-      console.log(created_at, currentTimestamp, itemTimestamp);
-      currentTimestamp += timestampDifference;
+      currentTimestamp += timediff;
     }
   }
-  // console.log(rate);
   return res
     .status(200)
     .json(
