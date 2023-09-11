@@ -71,34 +71,34 @@ router.get("/history", async (req, res) => {
     default:
       break;
   }
-  let timediff = 60;
+  let timediff = 1;
   if (timestampDifference < 604800) {
     //today
-    timediff = 60;
+    mindiff = 1;
     console.log("today");
   } else if (timestampDifference < 2678400) {
     //week
-    timediff = 60 * 15;
+    timediff = 15;
     console.log("week");
   } else if (timestampDifference < 15894000) {
     //month
-    timediff = 60 * 30;
+    timediff = 30;
     console.log("month");
   } else if (timestampDifference < 21573392) {
     //6 monhts
-    timediff = 60 * 60 * 2;
+    timediff = 60 * 2;
     console.log("montsh");
   } else if (timestampDifference < 31536001) {
     // start of year
-    timediff = 60 * 60 * 24;
+    timediff = 60 * 24;
     console.log("start");
   } else if (timestampDifference < 157766401) {
     //1 year before
-    timediff = 60 * 60 * 24;
+    timediff = 60 * 24;
     console.log("year");
   } else if (timestampDifference < 1694097410) {
     // 5 years
-    timediff = 60 * 60 * 24 * 7;
+    timediff = 60 * 24 * 7;
     console.log("years");
   } else {
     //all time
@@ -109,43 +109,37 @@ router.get("/history", async (req, res) => {
   console.log("timestamp", timestampDifference);
   console.log("diff", timediff);
 
-  const rate = await rateModel
-    .find({
-      symbol: latestsymbol[0]?._id,
-      createdAt: {
-        $gt: timestampDateFrom,
-        $lte: timestampDateTo,
+  const rate = await rateModel.aggregate([
+    {
+      $match: {
+        symbol: latestsymbol[0]?._id,
+        createdAt: {
+          $gt: new Date(timestampDateFrom),
+          $lte: new Date(timestampDateTo),
+        },
       },
-    })
-    .sort({ createdAt: 1 }) // Sort by ascending order of createdAt field
-    .catch((err) => {
-      console.log(err);
-    }); // Limit to only one document
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          dayOfYear: { $dayOfYear: "$createdAt" },
+          hour: { $hour: "$createdAt" },
+          minute: {
+            $floor: { $divide: [{ $minute: "$createdAt" }, timediff] },
+          },
+        },
+        data: { $first: "$$ROOT" },
+      },
+    },
+    { $replaceRoot: { newRoot: "$data" } },
+    {
+      $sort: { createdAt: 1 },
+    },
+    { $limit: 1000 },
+  ]);
 
-  const filteredRate = [];
-  let currentTimestamp = Math.floor(
-    new Date(rate[0]?.createdAt).getTime() / 1000
-  );
-
-  for (const item of rate) {
-    const itemTimestamp = Math.floor(new Date(item.createdAt).getTime() / 1000);
-    if (itemTimestamp >= currentTimestamp) {
-      filteredRate.push(item);
-
-      const created_at = new Date(item.createdAt).toLocaleString("en-US", {
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        month: "long",
-      });
-      currentTimestamp += timediff;
-    }
-  }
-  return res
-    .status(200)
-    .json(
-      filteredRate.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    );
+  return res.status(200).json(rate);
 });
 
 module.exports = router;
