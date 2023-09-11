@@ -109,7 +109,7 @@ router.get("/history", async (req, res) => {
       dayOfYear: { $dayOfYear: "$createdAt" },
       hour: { $hour: "$createdAt" },
       minute: {
-        $floor: { $divide: [{ $minute: "$createdAt" }, 1] },
+        $floor: { $divide: [{ $minute: "$createdAt" }, 30] },
       },
     };
   } else if (timestampDifference < 21573392) {
