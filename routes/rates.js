@@ -71,43 +71,81 @@ router.get("/history", async (req, res) => {
     default:
       break;
   }
-  let timediff = 1;
+
+  let timediff = {
+    year: { $year: "$createdAt" },
+    dayOfYear: { $dayOfYear: "$createdAt" },
+    hour: { $hour: "$createdAt" },
+    minute: {
+      $floor: { $divide: [{ $minute: "$createdAt" }, 1] },
+    },
+  };
   if (timestampDifference < 604800) {
     //today
-    mindiff = 1;
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $hour: "$createdAt" },
+      minute: {
+        $floor: { $divide: [{ $minute: "$createdAt" }, 1] },
+      },
+    };
     console.log("today");
   } else if (timestampDifference < 2678400) {
     //week
-    timediff = 15;
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $hour: "$createdAt" },
+      minute: {
+        $floor: { $divide: [{ $minute: "$createdAt" }, 15] },
+      },
+    };
     console.log("week");
   } else if (timestampDifference < 15894000) {
     //month
-    timediff = 30;
-    console.log("month");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $hour: "$createdAt" },
+      minute: {
+        $floor: { $divide: [{ $minute: "$createdAt" }, 1] },
+      },
+    };
   } else if (timestampDifference < 21573392) {
     //6 monhts
-    timediff = 60 * 2;
-    console.log("montsh");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $floor: { $divide: [{ $hour: "$createdAt" }, 2] } },
+    };
   } else if (timestampDifference < 31536001) {
     // start of year
-    timediff = 60 * 24;
-    console.log("start");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $floor: { $divide: [{ $hour: "$createdAt" }, 24] } },
+    };
   } else if (timestampDifference < 157766401) {
     //1 year before
-    timediff = 60 * 24;
-    console.log("year");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $dayOfYear: "$createdAt" },
+      hour: { $floor: { $divide: [{ $hour: "$createdAt" }, 24] } },
+    };
   } else if (timestampDifference < 1694097410) {
     // 5 years
-    timediff = 60 * 24 * 7;
-    console.log("years");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $floor: { $divide: [{ $dayOfYear: "$createdAt" }, 7] } },
+    };
   } else {
     //all time
-    timediff = 60 * 60 * 24 * 31;
-    console.log("all");
+    timediff = {
+      year: { $year: "$createdAt" },
+      dayOfYear: { $floor: { $divide: [{ $dayOfYear: "$createdAt" }, 30] } },
+    };
   }
-
-  console.log("timestamp", timestampDifference);
-  console.log("diff", timediff);
 
   const rate = await rateModel.aggregate([
     {
@@ -121,22 +159,16 @@ router.get("/history", async (req, res) => {
     },
     {
       $group: {
-        _id: {
-          year: { $year: "$createdAt" },
-          dayOfYear: { $dayOfYear: "$createdAt" },
-          hour: { $hour: "$createdAt" },
-          minute: {
-            $floor: { $divide: [{ $minute: "$createdAt" }, timediff] },
-          },
-        },
+        _id: timediff,
         data: { $first: "$$ROOT" },
       },
     },
     { $replaceRoot: { newRoot: "$data" } },
     {
-      $sort: { createdAt: 1 },
+      $sort: { createdAt: -1 },
     },
     { $limit: 1000 },
+    { $sort: { createdAt: 1 } },
   ]);
 
   return res.status(200).json(rate);
